@@ -15,13 +15,18 @@ private static int labelCounter = 0; // Static counter for unique labels
         this.writer = new BufferedWriter(new FileWriter(outputFile));
     }
     
-    public void writeComment(String comment) throws IOException {
-        writer.write("// " + comment);
-        writer.newLine();
-    }
+    //public void writeComment(String comment) throws IOException {
+     //   writer.write("// " + comment);
+      //  writer.newLine();
+   // }
 
     public void setInputFile(String inputFile) {
         this.inputFile = inputFile;
+    }
+
+    public void setFileName(String fileName) {
+        System.out.println(" translation of file: " + fileName);
+        this.inputFile = fileName;
     }
 
     public void writeTranslation() throws IOException{
