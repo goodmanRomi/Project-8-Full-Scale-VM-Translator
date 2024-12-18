@@ -183,6 +183,7 @@ private static int labelCounter = 0; // Static counter for unique labels
                     break;
             }
             } else {
+        
             String segment = parser.arg1();
             int index = parser.arg2();
             asmCode = " ";
@@ -394,11 +395,26 @@ private static int labelCounter = 0; // Static counter for unique labels
         } else if (commandType.equals(Parser.C_FUNCTION)){ //function FunctionName nVars, Create a label for the function, Initialize the local variables to 0.
 
         } else if (commandType.equals(Parser.C_LABEL)){ 
+            
 
         } else if (commandType.equals(Parser.C_GOTO)){
+            asmCode += " //" + Parser.C_GOTO + "\n";
+            asmCode +=" @" + segment + "\n";
+            asmCode +=" 0;JMP\n";
             
-        }else if (commandType.equals(Parser.C_IF)){
+        }else if (commandType.equals(Parser.C_IF)){ //must write code that pushes a boolean expression onto the stack before the IF expression 
+            asmCode += " //" + Parser.C_IF + "\n";  //if i have true at the top of my stack, jump to execute the command just after the label
+            asmCode +=" @SP\n"; //load SP 
+            asmCode +=" M=M-1\n"; //move SP to point at last element placed in stack
             
+
+            
+                                                    //Check if the popped value is true (non-zero).
+            
+            
+            asmCode +=" @" + segment + "\n"; //Jump to the label if the value is true.
+            asmCode +=" 0;JMP\n";
+
         } else if (commandType.equals(Parser.C_CALL)){ //Save the caller's state (return address, frame pointers), Jump to the function being called.
             
         } else if (commandType.equals(Parser.C_RETURN)){ //Restore the caller’s state,

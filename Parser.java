@@ -75,7 +75,7 @@ public class Parser{
             return "C_GOTO";
         } else if (currentCommand.startsWith("label")) {
             return "C_LABEL";
-        } else if (currentCommand.startsWith("if")){
+        } else if (currentCommand.startsWith("if-goto")){
             return "C_IF";
         } else if (currentCommand.startsWith("return")){
             return "C_RETURN"; 
