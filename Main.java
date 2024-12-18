@@ -1,6 +1,6 @@
 import java.io.File;
 import java.io.IOException;
-
+//cc
 public class Main {
     public static void main(String[] args) throws IOException {
         String inputPath = args[0]; // Assuming a valid input file is provided
@@ -23,7 +23,8 @@ public class Main {
                 if (vmFiles != null) {
                     for (File vmFile : vmFiles) {
                         String fileNameWithoutExtension = vmFile.getName().replace(".vm", "");
-                        codeWriter.writeComment("code for " + fileNameWithoutExtension);
+                     //   codeWriter.writeComment("code for " + fileNameWithoutExtension);
+                        codeWriter.setFileName(fileNameWithoutExtension)
                         codeWriter.setInputFile(vmFile.getAbsolutePath());
                         codeWriter.writeTranslation();   
                     }

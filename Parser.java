@@ -1,11 +1,18 @@
 import java.io.*;
 import java.util.regex.*; 
-
+//
 public class Parser{
     //command types
     public static final String C_ARITHMETIC = "C_ARITHMETIC";
     public static final String C_PUSH = "C_PUSH";
     public static final String C_POP = "C_POP";
+    
+    public static final Object C_FUNCTION = "function";
+    public static final Object C_LABEL = "label";
+    public static final Object C_GOTO = "goto";
+    public static final Object C_IF = "if";
+    public static final Object C_CALL = "call";
+    public static final Object C_RETURN = "return";
     
     //types of arithmetics:
     public static final String ADD = "add";
@@ -28,9 +35,10 @@ public class Parser{
      public static final String TEMP = "temp";
      public static final String STATIC = "static";
  
-
+    
     private String currentCommand; //current command being proccessed 
     private static final Pattern commentPattern = Pattern.compile("//.*$");//code defines a pattern that will match any text starting with "//" and continuing to the end of the line, effectively capturing single-line comments.
+
     private BufferedReader reader; //reads the file line by line
 
     public Parser(String inputFile) throws IOException {
