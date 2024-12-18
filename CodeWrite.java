@@ -408,18 +408,27 @@ private static int labelCounter = 0; // Static counter for unique labels
             asmCode +=" (END_INIT)\n"; //jump here once we finished the loop to initiate all
             //dd
 
-        } else if (commandType.equals(Parser.C_LABEL)){ 
-            
+
+
+        } else if (commandType.equals(Parser.C_LABEL)){
+                // Retrieve the label name from the parser
+                String labelName = segment;
+
+                // Add the label code to the assembly output
+                asmCode += labelName;
 
         } else if (commandType.equals(Parser.C_GOTO)){
             asmCode += " //" + Parser.C_GOTO + "\n";
             asmCode +=" @" + segment + "\n";
             asmCode +=" 0;JMP\n";
             
-        }else if (commandType.equals(Parser.C_IF)){ //must write code that pushes a boolean expression onto the stack before the IF expression 
+        } else if (commandType.equals(Parser.C_IF)){ //must write code that pushes a boolean expression onto the stack before the IF expression
             asmCode += " //" + Parser.C_IF + "\n";  //if i have true at the top of my stack, jump to execute the command just after the label
             asmCode +=" @SP\n"; //load SP 
             asmCode +=" M=M-1\n"; //move SP to point at last element placed in stack
+                                  //Check if the popped value is true (non-zero).
+            asmCode +=" @" + segment + "\n"; //Jump to the label if the value is true.
+            asmCode +=" 0;JMP\n";
             asmCode +=" A=M\n"; //point to the top of the stack 
             asmCode +=" M=M-1\n"; //move
             asmCode +=" D=M\n"; //D = *SP (pop the top value) 
@@ -427,9 +436,79 @@ private static int labelCounter = 0; // Static counter for unique labels
             asmCode +=" D;JNE\n"; //Jump to the label if the value in D is not 0 hence true
 
         } else if (commandType.equals(Parser.C_CALL)){ //Save the caller's state (return address, frame pointers), Jump to the function being called.
-            
+                //receive func name and nArgs
+                String functionName = parser.arg1();
+                int nArgs = parser.arg2();
+
+                String returnAddressLabel = functionName + "$ret." + labelCounter++; //translation according to slide 42
+                asmCode += "//calling" + Parser.C_CALL + " " + functionName + " " + nArgs + "\n";
+
+                // 1. Push the return address onto the stack
+                asmCode += "@" + returnAddressLabel + "\n";
+                asmCode += "D=A\n";               // D = return address
+                asmCode += "@SP\n";
+                asmCode += "A=M\n";               // A = *SP
+                asmCode += "M=D\n";               // *SP = return address
+                asmCode += "@SP\n";
+                asmCode += "M=M+1\n";             // Increment SP
+
+                // 2. Push the LCL (frame pointer) onto the stack
+                asmCode += "@LCL\n";
+                asmCode += "D=M\n";               // D = LCL
+                asmCode += "@SP\n";
+                asmCode += "A=M\n";               // A = *SP
+                asmCode += "M=D\n";               // *SP = LCL
+                asmCode += "@SP\n";
+                asmCode += "M=M+1\n";             // Increment SP
+
+                // 3. Push the ARG (argument pointer) onto the stack
+                asmCode += "@ARG\n";
+                asmCode += "D=M\n";               // D = ARG
+                asmCode += "@SP\n";
+                asmCode += "A=M\n";               // A = *SP
+                asmCode += "M=D\n";               // *SP = ARG
+                asmCode += "@SP\n";
+                asmCode += "M=M+1\n";             // Increment SP
+
+                // 4. Push the THIS (this pointer) onto the stack
+                asmCode += "@THIS\n";
+                asmCode += "D=M\n";               // D = THIS
+                asmCode += "@SP\n";
+                asmCode += "A=M\n";               // A = *SP
+                asmCode += "M=D\n";               // *SP = THIS
+                asmCode += "@SP\n";
+                asmCode += "M=M+1\n";             // Increment SP
+
+                // 5. Push the THAT (that pointer) onto the stack
+                asmCode += "@THAT\n";
+                asmCode += "D=M\n";               // D = THAT
+                asmCode += "@SP\n";
+                asmCode += "A=M\n";               // A = *SP
+                asmCode += "M=D\n";               // *SP = THAT
+                asmCode += "@SP\n";
+                asmCode += "M=M+1\n";             // Increment SP
+
+                // 6. Adjust the ARG pointer to account for the arguments being pushed (beginning of nArgs)
+                asmCode += "@" + (5 + nArgs) + "\n";  // ARG = SP - (nArgs + 5)
+                asmCode += "D=A\n";
+                asmCode += "@ARG\n";
+                asmCode += "M=D\n";               // Set ARG to SP - (nArgs + 5)
+
+                // 7. Adjust the LCL pointer to point to the current frame
+                asmCode += "@SP\n";
+                asmCode += "D=M\n";               // D = SP (top of stack after all pushes)
+                asmCode += "@LCL\n";
+                asmCode += "M=D\n";               // Set LCL to the current SP
+
+                // 8. Jump to the function
+                asmCode += "@" + functionName + "\n";
+                asmCode += "0;JMP\n";             // Jump to the function
+
+                // 9. Label for the return address
+                asmCode += "(" + returnAddressLabel + ")\n";  // Return address label
+                
         } else if (commandType.equals(Parser.C_RETURN)){ //Restore the caller’s state,
-            //ss
+
         }
 
     }
