@@ -487,8 +487,9 @@ private static int labelCounter = 0; // Static counter for unique labels
 
                 // 9. Label for the return address
                 asmCode += "(" + returnAddressLabel + ")\n";  // Return address label
+                
         } else if (commandType.equals(Parser.C_RETURN)){ //Restore the caller’s state,
-            //ss
+
         }
 
     }
