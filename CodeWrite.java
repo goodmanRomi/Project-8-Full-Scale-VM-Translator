@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.foreign.MemoryLayout.PathElement;
 
 
 public class CodeWrite{
@@ -7,7 +8,6 @@ private String inputFile;
 private String outputFile;
 private BufferedWriter writer;
 private static int labelCounter = 0; // Static counter for unique labels
-
 
     
     public CodeWrite(String outputFile) throws IOException{
@@ -391,7 +391,20 @@ private static int labelCounter = 0; // Static counter for unique labels
                     break;
 
             }
+        } else if (commandType.equals(Parser.C_FUNCTION)){ //function FunctionName nVars, Create a label for the function, Initialize the local variables to 0.
+
+        } else if (commandType.equals(Parser.C_LABEL)){ 
+
+        } else if (commandType.equals(Parser.C_GOTO)){
+            
+        }else if (commandType.equals(Parser.C_IF)){
+            
+        } else if (commandType.equals(Parser.C_CALL)){ //Save the caller's state (return address, frame pointers), Jump to the function being called.
+            
+        } else if (commandType.equals(Parser.C_RETURN)){ //Restore the caller’s state,
+            //ss
         }
+
     }
             writer.write(asmCode);
             writer.newLine();      
