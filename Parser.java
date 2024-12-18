@@ -36,7 +36,7 @@ public class Parser{
      public static final String STATIC = "static";
  
     
-    private String currentCommand; //current command being proccessed 
+    private String currentCommand; //current command being processed
     private static final Pattern commentPattern = Pattern.compile("//.*$");//code defines a pattern that will match any text starting with "//" and continuing to the end of the line, effectively capturing single-line comments.
 
     private BufferedReader reader; //reads the file line by line
@@ -75,7 +75,7 @@ public class Parser{
             return "C_GOTO";
         } else if (currentCommand.startsWith("label")) {
             return "C_LABEL";
-        } else if (currentCommand.startsWith("if")){
+        } else if (currentCommand.startsWith("if-goto")){
             return "C_IF";
         } else if (currentCommand.startsWith("return")){
             return "C_RETURN"; 
@@ -91,7 +91,7 @@ public class Parser{
     } else { 
         if (!commandType().equals("C_RETURN")) {
             return currentCommand.split(" ")[1];
-        } else {return " ";} //shouldnt be called if the current comand is c-return - not sure yet where and how
+        } else {return " ";} //shouldnt be called if the current command is c-return - not sure yet where and how
     }
     }
 
