@@ -406,14 +406,11 @@ private static int labelCounter = 0; // Static counter for unique labels
             asmCode += " //" + Parser.C_IF + "\n";  //if i have true at the top of my stack, jump to execute the command just after the label
             asmCode +=" @SP\n"; //load SP 
             asmCode +=" M=M-1\n"; //move SP to point at last element placed in stack
-            
-
-            
-                                                    //Check if the popped value is true (non-zero).
-            
-            
-            asmCode +=" @" + segment + "\n"; //Jump to the label if the value is true.
-            asmCode +=" 0;JMP\n";
+            asmCode +=" A=M\n"; //point to the top of the stack 
+            asmCode +=" M=M-1\n"; //move
+            asmCode +=" D=M\n"; //D = *SP (pop the top value) 
+            asmCode +=" @" + segment + "\n"; //Check if the popped value is true (non-zero)
+            asmCode +=" D;JNE\n"; //Jump to the label if the value in D is not 0 hence true
 
         } else if (commandType.equals(Parser.C_CALL)){ //Save the caller's state (return address, frame pointers), Jump to the function being called.
             
