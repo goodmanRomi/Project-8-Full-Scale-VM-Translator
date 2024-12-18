@@ -24,7 +24,7 @@ public class Main {
                     for (File vmFile : vmFiles) {
                         String fileNameWithoutExtension = vmFile.getName().replace(".vm", "");
                      //   codeWriter.writeComment("code for " + fileNameWithoutExtension);
-                        codeWriter.setFileName(fileNameWithoutExtension);
+                        codeWriter.setFileName(fileNameWithoutExtension)
                         codeWriter.setInputFile(vmFile.getAbsolutePath());
                         codeWriter.writeTranslation();   
                     }
