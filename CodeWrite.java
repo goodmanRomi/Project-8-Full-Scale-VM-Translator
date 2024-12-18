@@ -392,7 +392,21 @@ private static int labelCounter = 0; // Static counter for unique labels
                     break;
 
             }
+            //caller
         } else if (commandType.equals(Parser.C_FUNCTION)){ //function FunctionName nVars, Create a label for the function, Initialize the local variables to 0.
+            int functionLable = labelCounter++;
+            asmCode += " //command is a function declaration for fucntion " + segment + "\n";
+            asmCode +=" (" +segment+ ")\n";       // Function entry point label
+            //asm code that initiallizes the local variables according to the int proivded to 0s
+            asmCode +=" @"+index+"\n"; //placeholder representing the number of local variables you want to initialize
+            asmCode +=" D=A\n"; // used the @index to get literallly the number of arguments i will be needing to initiallize
+            asmCode +=" @R13\n";//using it as a temporary register to be the counter for the loop
+            asmCode +=" M=D\n";//store the number of variables i will be needing in temporary @R13
+            asmCode +="(INIT_LOCALS)\n"; //start of the loop for initializtion 
+            asmCode +=" @0\n D=A\n @SP\n A=M\n M=D\n @SP\n @M=M+1\n"; // using register 0 to get 0 as data to put into SP, change SP to point to 0 and also to store 0 there, and increment it
+            asmCode +=" @R13\n M=M-1\n @INIT_LOCALS\n D=M\n @END_INIT\n D;JEQ\n @INIT_LOCALS\n 0;JMP\n"; //decreament counter for loop, set stop for loop, if my R13 is not yet equals 0, i will jump to start again
+            asmCode +=" (END_INIT)\n"; //jump here once we finished the loop to initiate all
+            //dd
 
         } else if (commandType.equals(Parser.C_LABEL)){ 
             
@@ -406,14 +420,11 @@ private static int labelCounter = 0; // Static counter for unique labels
             asmCode += " //" + Parser.C_IF + "\n";  //if i have true at the top of my stack, jump to execute the command just after the label
             asmCode +=" @SP\n"; //load SP 
             asmCode +=" M=M-1\n"; //move SP to point at last element placed in stack
-            
-
-            
-                                                    //Check if the popped value is true (non-zero).
-            
-            
-            asmCode +=" @" + segment + "\n"; //Jump to the label if the value is true.
-            asmCode +=" 0;JMP\n";
+            asmCode +=" A=M\n"; //point to the top of the stack 
+            asmCode +=" M=M-1\n"; //move
+            asmCode +=" D=M\n"; //D = *SP (pop the top value) 
+            asmCode +=" @" + segment + "\n"; //Check if the popped value is true (non-zero)
+            asmCode +=" D;JNE\n"; //Jump to the label if the value in D is not 0 hence true
 
         } else if (commandType.equals(Parser.C_CALL)){ //Save the caller's state (return address, frame pointers), Jump to the function being called.
             
