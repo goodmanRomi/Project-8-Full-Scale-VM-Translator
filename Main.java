@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+
 //cc
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -11,6 +12,7 @@ public class Main {
             String outputFileName = inputFile.getParent() + "/" + inputFile.getName().replace(".vm", ".asm");
             CodeWrite codeWriter = new CodeWrite(outputFileName);
             codeWriter.setInputFile(inputFile.getAbsolutePath());
+            codeWriter.writeBootstrap();
             codeWriter.writeTranslation();            
             codeWriter.close();
         } 
@@ -23,9 +25,10 @@ public class Main {
                 if (vmFiles != null) {
                     for (File vmFile : vmFiles) {
                         String fileNameWithoutExtension = vmFile.getName().replace(".vm", "");
-                     //   codeWriter.writeComment("code for " + fileNameWithoutExtension);
-                        codeWriter.setFileName(fileNameWithoutExtension);
+                       codeWriter.writeComment("code for " + fileNameWithoutExtension);
+                        // codeWriter.setFileName(fileNameWithoutExtension);
                         codeWriter.setInputFile(vmFile.getAbsolutePath());
+                        codeWriter.writeBootstrap();
                         codeWriter.writeTranslation();   
                     }
                 }

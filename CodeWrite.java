@@ -1,5 +1,4 @@
 import java.io.*;
-import java.lang.foreign.MemoryLayout.PathElement;
 
 public class CodeWrite{
 
@@ -14,18 +13,32 @@ private static int labelCounter = 0; // Static counter for unique labels
         this.writer = new BufferedWriter(new FileWriter(outputFile));
     }
     
-    //public void writeComment(String comment) throws IOException {
-     //   writer.write("// " + comment);
-      //  writer.newLine();
-   // }
+    public void writeComment(String comment) throws IOException {
+        writer.write("// " + comment);
+        writer.newLine();
+    }
 
     public void setInputFile(String inputFile) {
         this.inputFile = inputFile;
     }
 
-    public void setFileName(String fileName) {
-        System.out.println(" translation of file: " + fileName);
-        this.inputFile = fileName;
+    // public void setFileName(String fileName) {
+    //     System.out.println(" translation of file: " + fileName);
+    //     this.inputFile = fileName;
+    // }
+
+    public void writeBootstrap() throws IOException {
+        // Initialize SP to 256
+        writer.write("// Bootstrap code\n");
+        writer.write("@256\n");
+        writer.write("D=A\n");
+        writer.write("@SP\n");
+        writer.write("M=D\n");
+    
+        // Call Sys.init
+        writer.write("@Sys.init\n");
+        writer.write("0;JMP\n");
+        writer.newLine();
     }
 
     public void writeTranslation() throws IOException{
@@ -392,174 +405,176 @@ private static int labelCounter = 0; // Static counter for unique labels
                     asmCode += " M=D\n";
                     break;
             }
+            
             //caller
        
         } else if (commandType.equals(Parser.C_FUNCTION)){ //function FunctionName nVars, Create a label for the function, Initialize the local variables to 0.
-            asmCode += " //command is a function declaration for fucntion " + segment + "\n";
-            asmCode +=" (" +segment+ ")\n";       // Function entry point label
-            //asm code that initiallizes the local variables according to the int proivded to 0s
-            asmCode +=" @"+index+"\n"; //placeholder representing the number of local variables you want to initialize
-            asmCode +=" D=A\n"; // used the @index to get literallly the number of arguments i will be needing to initiallize
-            asmCode +=" @R13\n";//using it as a temporary register to be the counter for the loop
-            asmCode +=" M=D\n";//store the number of variables i will be needing in temporary @R13
-            asmCode +="(INIT_LOCALS)\n"; //start of the loop for initializtion 
-            asmCode +=" @0\n D=A\n @SP\n A=M\n M=D\n @SP\n @M=M+1\n"; // using register 0 to get 0 as data to put into SP, change SP to point to 0 and also to store 0 there, and increment it
-            asmCode +=" @R13\n M=M-1\n @INIT_LOCALS\n D=M\n @END_INIT\n D;JEQ\n @INIT_LOCALS\n 0;JMP\n"; //decreament counter for loop, set stop for loop, if my R13 is not yet equals 0, i will jump to start again
-            asmCode +=" (END_INIT)\n"; //jump here once we finished the loop to initiate all
-        
+                    asmCode += " //command is a function declaration for fucntion " + segment + "\n";
+                    asmCode +=" (" +segment+ ")\n";       // Function entry point label
+                    //asm code that initiallizes the local variables according to the int proivded to 0s
+                    asmCode +=" @"+index+"\n"; //placeholder representing the number of local variables you want to initialize
+                    asmCode +=" D=A\n"; // used the @index to get literallly the number of arguments i will be needing to initiallize
+                    asmCode +=" @R13\n";//using it as a temporary register to be the counter for the loop
+                    asmCode +=" M=D\n";//store the number of variables i will be needing in temporary @R13
+                    asmCode +="(INIT_LOCALS)\n"; //start of the loop for initializtion 
+                    asmCode +=" @0\n D=A\n @SP\n A=M\n M=D\n @SP\n @M=M+1\n"; // using register 0 to get 0 as data to put into SP, change SP to point to 0 and also to store 0 there, and increment it
+                    asmCode +=" @R13\n M=M-1\n @INIT_LOCALS\n D=M\n @END_INIT\n D;JEQ\n @INIT_LOCALS\n 0;JMP\n"; //decreament counter for loop, set stop for loop, if my R13 is not yet equals 0, i will jump to start again
+                    asmCode +=" (END_INIT)\n"; //jump here once we finished the loop to initiate all
+                
 
         } else if (commandType.equals(Parser.C_LABEL)){
-            asmCode += segment+"\n"; // Add the label code to the assembly output
+                    asmCode += "("+segment+")\n"; // Add the label code to the assembly output
 
         } else if (commandType.equals(Parser.C_GOTO)){
-            asmCode += " //" + Parser.C_GOTO + "\n";
-            asmCode +=" @" + segment + "\n";
-            asmCode +=" 0;JMP\n";
+                    asmCode += " //" + Parser.C_GOTO + "\n";
+                    asmCode +=" @" + segment + "\n";
+                    asmCode +=" 0;JMP\n";
             
         } else if (commandType.equals(Parser.C_IF)){ //must write code that pushes a boolean expression onto the stack before the IF expression
-            asmCode += " //" + Parser.C_IF + "\n";  //if i have true at the top of my stack, jump to execute the command just after the label
-            asmCode +=" @SP\n"; //load SP 
-            asmCode +=" M=M-1\n"; //move SP to point at last element placed in stack
-                                  //Check if the popped value is true (non-zero).
-            asmCode +=" @" + segment + "\n"; //Jump to the label if the value is true.
-            asmCode +=" 0;JMP\n";
-            asmCode +=" A=M\n"; //point to the top of the stack 
-            asmCode +=" M=M-1\n"; //move
-            asmCode +=" D=M\n"; //D = *SP (pop the top value) 
-            asmCode +=" @" + segment + "\n"; //Check if the popped value is true (non-zero)
-            asmCode +=" D;JNE\n"; //Jump to the label if the value in D is not 0 hence true
+                    asmCode += " //" + Parser.C_IF + "\n";  //if i have true at the top of my stack, jump to execute the command just after the label
+                    asmCode +=" @SP\n"; //load SP 
+                    asmCode +=" M=M-1\n"; //move SP to point at last element placed in stack
+                                        //Check if the popped value is true (non-zero).
+                    asmCode +=" @" + segment + "\n"; //Jump to the label if the value is true.
+                    asmCode +=" 0;JMP\n";
+                    asmCode +=" A=M\n"; //point to the top of the stack 
+                    asmCode +=" M=M-1\n"; //move
+                    asmCode +=" D=M\n"; //D = *SP (pop the top value) 
+                    asmCode +=" @" + segment + "\n"; //Check if the popped value is true (non-zero)
+                    asmCode +=" D;JNE\n"; //Jump to the label if the value in D is not 0 hence true
 
         } else if (commandType.equals(Parser.C_CALL)){ //Save the caller's state (return address, frame pointers), Jump to the function being called.
-                //receive func name and nArgs
-                
-                asmCode += "//calling" + Parser.C_CALL + " " + segment + " " + index + "\n";
+                    //receive func name and nArgs
+                    asmCode += "//calling" + Parser.C_CALL + " " + segment + " " + index + "\n";
 
-                // 1. Push the return address onto the stack
-                asmCode += "@" + returnAddressLabel + "\n";
-                asmCode += "D=A\n";               // D = return address
-                asmCode += "@SP\n";
-                asmCode += "A=M\n";               // A = *SP
-                asmCode += "M=D\n";               // *SP = return address
-                asmCode += "@SP\n";
-                asmCode += "M=M+1\n";             // Increment SP
+                    // 1. Push the return address onto the stack
+                    asmCode += "@" + returnAddressLabel + "\n";
+                    asmCode += "D=A\n";               // D = return address
+                    asmCode += "@SP\n";
+                    asmCode += "A=M\n";               // A = *SP
+                    asmCode += "M=D\n";               // *SP = return address
+                    asmCode += "@SP\n";
+                    asmCode += "M=M+1\n";             // Increment SP
+                    
+                    // 2. Push the LCL (frame pointer) onto the stack
+                    asmCode += "@LCL\n";
+                    asmCode += "D=M\n";               // D = LCL
+                    asmCode += "@SP\n";
+                    asmCode += "A=M\n";               // A = *SP
+                    asmCode += "M=D\n";               // *SP = LCL
+                    asmCode += "@SP\n";
+                    asmCode += "M=M+1\n";             // Increment SP
 
-                // 2. Push the LCL (frame pointer) onto the stack
-                asmCode += "@LCL\n";
-                asmCode += "D=M\n";               // D = LCL
-                asmCode += "@SP\n";
-                asmCode += "A=M\n";               // A = *SP
-                asmCode += "M=D\n";               // *SP = LCL
-                asmCode += "@SP\n";
-                asmCode += "M=M+1\n";             // Increment SP
+                    // 3. Push the ARG (argument pointer) onto the stack
+                    asmCode += "@ARG\n";
+                    asmCode += "D=M\n";               // D = ARG
+                    asmCode += "@SP\n";
+                    asmCode += "A=M\n";               // A = *SP
+                    asmCode += "M=D\n";               // *SP = ARG
+                    asmCode += "@SP\n";
+                    asmCode += "M=M+1\n";             // Increment SP
 
-                // 3. Push the ARG (argument pointer) onto the stack
-                asmCode += "@ARG\n";
-                asmCode += "D=M\n";               // D = ARG
-                asmCode += "@SP\n";
-                asmCode += "A=M\n";               // A = *SP
-                asmCode += "M=D\n";               // *SP = ARG
-                asmCode += "@SP\n";
-                asmCode += "M=M+1\n";             // Increment SP
+                    // 4. Push the THIS (this pointer) onto the stack
+                    asmCode += "@THIS\n";
+                    asmCode += "D=M\n";               // D = THIS
+                    asmCode += "@SP\n";
+                    asmCode += "A=M\n";               // A = *SP
+                    asmCode += "M=D\n";               // *SP = THIS
+                    asmCode += "@SP\n";
+                    asmCode += "M=M+1\n";             // Increment SP
 
-                // 4. Push the THIS (this pointer) onto the stack
-                asmCode += "@THIS\n";
-                asmCode += "D=M\n";               // D = THIS
-                asmCode += "@SP\n";
-                asmCode += "A=M\n";               // A = *SP
-                asmCode += "M=D\n";               // *SP = THIS
-                asmCode += "@SP\n";
-                asmCode += "M=M+1\n";             // Increment SP
+                    // 5. Push the THAT (that pointer) onto the stack
+                    asmCode += "@THAT\n";
+                    asmCode += "D=M\n";               // D = THAT
+                    asmCode += "@SP\n";
+                    asmCode += "A=M\n";               // A = *SP
+                    asmCode += "M=D\n";               // *SP = THAT
+                    asmCode += "@SP\n";
+                    asmCode += "M=M+1\n";             // Increment SP
 
-                // 5. Push the THAT (that pointer) onto the stack
-                asmCode += "@THAT\n";
-                asmCode += "D=M\n";               // D = THAT
-                asmCode += "@SP\n";
-                asmCode += "A=M\n";               // A = *SP
-                asmCode += "M=D\n";               // *SP = THAT
-                asmCode += "@SP\n";
-                asmCode += "M=M+1\n";             // Increment SP
+                    // 6. Adjust the ARG pointer to account for the arguments being pushed (beginning of nArgs)
+                    asmCode += "@" + (5 + index) + "\n";  // Load (nArgs + 5) into D
+                    asmCode += "D=A\n";
+                    asmCode += "@SP\n"; //subtract (5 + index) from the current SP value
+                    asmCode += "D=M-D\n";                // D = SP - (nArgs + 5)
+                    asmCode += "@ARG\n";
+                    asmCode += "M=D\n";                  // ARG = SP - (nArgs + 5)
 
-                // 6. Adjust the ARG pointer to account for the arguments being pushed (beginning of nArgs)
-                asmCode += "@" + (5 + index) + "\n";  // ARG = SP - (nArgs + 5)
-                asmCode += "D=A\n";
-                asmCode += "@ARG\n";
-                asmCode += "M=D\n";               // Set ARG to SP - (nArgs + 5)
 
-                // 7. Adjust the LCL pointer to point to the current frame
-                asmCode += "@SP\n";
-                asmCode += "D=M\n";               // D = SP (top of stack after all pushes)
-                asmCode += "@LCL\n";
-                asmCode += "M=D\n";               // Set LCL to the current SP
+                    // 7. Adjust the LCL pointer to point to the current frame
+                    asmCode += "@SP\n";
+                    asmCode += "D=M\n";               // D = SP (top of stack after all pushes)
+                    asmCode += "@LCL\n";
+                    asmCode += "M=D\n";               // Set LCL to the current SP
 
-                // 8. Jump to the function
-                asmCode += "@" + segment + "\n";
-                asmCode += "0;JMP\n";             // Jump to the function
+                    // 8. Jump to the function
+                    asmCode += "@" + segment + "\n";
+                    asmCode += "0;JMP\n";             // Jump to the function
 
-                // 9. Label for the return address
-                asmCode += "(" + returnAddressLabel + ")\n";  // Return address label
+                    // 9. Label for the return address
+                    asmCode += "(" + returnAddressLabel + ")\n";  // Return address label
                 
         } else if (commandType.equals(Parser.C_RETURN)){ //Restore the caller’s state,
-            // Step 1: Save the return address (LCL-5) into a temporary register returnAddressLabel
-            asmCode += "@LCL\n";
-            asmCode += "D=M\n";            // D = LCL
-            asmCode += "@5\n";
-            asmCode += "A=D-A\n";          // A = LCL - 5
-            asmCode += "D=M\n";            // D = return address
-            asmCode += "@returnAddressLabel\n";
-            asmCode += "M=D\n";            // returnAddressLabel = return address 
-            
-            // Step 2: Store return value in ARG[0]
-             asmCode += "@SP\n";
-             asmCode += "M=M-1\n";          // SP = SP - 1 (ARG place, one before SP)
-             asmCode += "A=M\n";            // A = *SP
-             asmCode += "D=M\n";            // D = *SP (return value)
-             asmCode += "@ARG\n";
-             asmCode += "A=M\n";            // ARG[0]
-             asmCode += "M=D\n";            // ARG[0] = D (return value)
- 
-             // Reposition SP one place after ARG
-             asmCode += "@ARG\n";
-             asmCode += "D=M+1\n";
-             asmCode += "@SP\n";
-             asmCode += "M=D\n";
- 
-             // Step 3: Restore THAT, THIS, ARG, LCL (in reverse order)
-             // Restore THAT (LCL-1)
-             asmCode += "@LCL\n";
-             asmCode += "D=M-1\n";          // D = LCL-1
-             asmCode += "A=D\n";            // A = LCL-1
-             asmCode += "D=M\n";            // D = THAT (stored at LCL-1)
-             asmCode += "@THAT\n";
-             asmCode += "M=D\n";            // THAT = D
- 
-             //Restore THIS (LCL-2)
-             asmCode += "@LCL\n";
-             asmCode += "D=M-2\n";
-             asmCode += "A=D\n";            // A = LCL-2
-             asmCode += "D=M\n";
-             asmCode += "@THIS\n";
-             asmCode += "M=D\n";
- 
-             // Restore ARG (LCL-3)
-             asmCode += "@ARG\n";
-             asmCode += "D=M-3\n";
-             asmCode += "A=D\n";
-             asmCode += "D=M\n";
- 
-             // Restore LCL (LCL-4)
-             asmCode += "@LCL\n";
-             asmCode += "D=M-4\n";          // D = LCL-4
-             asmCode += "A=D\n";            // A = LCL-4
-             asmCode += "D=M\n";            // D = LCL (stored at LCL-4)
-             asmCode += "@LCL\n";
-             asmCode += "M=D\n";            // LCL = D
- 
-             // Step 4: Go to the return address (stored in returnAddressLabel)
-             asmCode += "@returnAddressLabel\n";
-             asmCode += "A=M\n";          // D = LCL-5 (return address)
-             asmCode += "0;JMP\n";          // Jump to the return address (C_RETURN ends)
-        }
-
+                    // Step 1: Save the return address (LCL-5) into a temporary register returnAddressLabel
+                    asmCode += "@LCL\n";
+                    asmCode += "D=M\n";            // D = LCL
+                    asmCode += "@5\n";
+                    asmCode += "A=D-A\n";          // A = LCL - 5
+                    asmCode += "D=M\n";            // D = return address
+                    asmCode += "@"+returnAddressLabel+"\n";
+                    asmCode += "M=D\n";            // returnAddressLabel = return address 
+                    
+                    // Step 2: Store return value in ARG[0]
+                    asmCode += "@SP\n";
+                    asmCode += "M=M-1\n";          // SP = SP - 1 (ARG place, one before SP)
+                    asmCode += "A=M\n";            // A = *SP
+                    asmCode += "D=M\n";            // D = *SP (return value)
+                    asmCode += "@ARG\n";
+                    asmCode += "A=M\n";            // ARG[0]
+                    asmCode += "M=D\n";            // ARG[0] = D (return value)
+        
+                    // Reposition SP one place after ARG
+                    asmCode += "@ARG\n";
+                    asmCode += "D=M+1\n";
+                    asmCode += "@SP\n";
+                    asmCode += "M=D\n";
+        
+                    // Step 3: Restore THAT, THIS, ARG, LCL (in reverse order)
+                    // Restore THAT (LCL-1)
+                    asmCode += "@LCL\n";
+                    asmCode += "D=M-1\n";          // D = LCL-1
+                    asmCode += "A=D\n";            // A = LCL-1
+                    asmCode += "D=M\n";            // D = THAT (stored at LCL-1)
+                    asmCode += "@THAT\n";
+                    asmCode += "M=D\n";            // THAT = D
+        
+                    //Restore THIS (LCL-2)
+                    asmCode += "@LCL\n";
+                    asmCode += "D=M-2\n";
+                    asmCode += "A=D\n";            // A = LCL-2
+                    asmCode += "D=M\n";
+                    asmCode += "@THIS\n";
+                    asmCode += "M=D\n";
+        
+                    // Restore ARG (LCL-3)
+                    asmCode += "@ARG\n";
+                    asmCode += "D=M-3\n";
+                    asmCode += "A=D\n";
+                    asmCode += "D=M\n";
+        
+                    // Restore LCL (LCL-4)
+                    asmCode += "@LCL\n";
+                    asmCode += "D=M-4\n";          // D = LCL-4
+                    asmCode += "A=D\n";            // A = LCL-4
+                    asmCode += "D=M\n";            // D = LCL (stored at LCL-4)
+                    asmCode += "@LCL\n";
+                    asmCode += "M=D\n";            // LCL = D
+        
+                    // Step 4: Go to the return address (stored in returnAddressLabel)
+                    asmCode += "@returnAddressLabel\n";
+                    asmCode += "A=M\n";          // D = LCL-5 (return address)
+                    asmCode += "0;JMP\n";          // Jump to the return address (C_RETURN ends)
+                }
     }
             writer.write(asmCode);
             writer.newLine();      
