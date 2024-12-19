@@ -409,12 +409,7 @@ private static int labelCounter = 0; // Static counter for unique labels
         
 
         } else if (commandType.equals(Parser.C_LABEL)){
-
-                // Retrieve the label name from the parser
-                String labelName = segment;
-
-                // Add the label code to the assembly output
-                asmCode += labelName;
+            asmCode += segment+"\n"; // Add the label code to the assembly output
 
         } else if (commandType.equals(Parser.C_GOTO)){
             asmCode += " //" + Parser.C_GOTO + "\n";
