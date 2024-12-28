@@ -7,12 +7,12 @@ public class Parser{
     public static final String C_PUSH = "C_PUSH";
     public static final String C_POP = "C_POP";
     
-    public static final Object C_FUNCTION = "function";
-    public static final Object C_LABEL = "label";
-    public static final Object C_GOTO = "goto";
-    public static final Object C_IF = "if";
-    public static final Object C_CALL = "call";
-    public static final Object C_RETURN = "return";
+    public static final Object C_FUNCTION = "C_FUNCTION";
+    public static final Object C_LABEL = "C_LABEL";
+    public static final Object C_GOTO = "C_GOTO";
+    public static final Object C_IF = "C_IF";
+    public static final Object C_CALL = "C_CALL";
+    public static final Object C_RETURN = "C_RETURN";
     
     //types of arithmetics:
     public static final String ADD = "add";
@@ -75,7 +75,7 @@ public class Parser{
             return "C_GOTO";
         } else if (currentCommand.startsWith("label")) {
             return "C_LABEL";
-        } else if (currentCommand.startsWith("if")){
+        } else if (currentCommand.startsWith("if-goto")){
             return "C_IF";
         } else if (currentCommand.startsWith("return")){
             return "C_RETURN"; 
@@ -86,10 +86,10 @@ public class Parser{
 
     //returns the first argument of the current command
     public String arg1(){
-       if (commandType().equals("C_ARITHMETIC")) {
+       if (commandType().equals("C_ARITHMETIC")||(commandType().equals("C_RETURN"))) {
         return currentCommand;
     } else { 
-        if (!commandType().equals("C_RETURN")) {
+        if (!commandType().equals("C_RETURN")) { //how we parse return? 
             return currentCommand.split(" ")[1];
         } else {return " ";} //shouldnt be called if the current comand is c-return - not sure yet where and how
     }
